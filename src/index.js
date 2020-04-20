@@ -17,6 +17,7 @@ class Square extends React.Component {
 }
 
 class Board extends React.Component {
+	
   handleClick(i) {
 	  const squares = this.state.squares.slice();
 	  squares[i] = (this.state.squares[i] == 'black' ? 'white' : 'black');
@@ -26,7 +27,9 @@ class Board extends React.Component {
   constructor(props) {
 	  super(props);
 	  this.state = {
-		  squares: Array(25).fill('white'),
+		  squares: Array(this.props.height * this.props.width).fill('white'),
+		  width: this.props.width,
+		  height: this.props.height,
 	  };
   }
 	
@@ -34,54 +37,70 @@ class Board extends React.Component {
     return (<Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />);
   }
   
+  drawGrid(h, w) {
+	  
+	  var rows = [];	  
+	   
+	  for (var i = 0; i < h; i++) {
+		  var row = [];		  
+		  for (var j = 0; j < w; j++) {
+			  row.push(this.renderSquare((i * w) + j));
+		  }
+		  
+		  rows.push(<div className="board-row">{row}</div>)
+	  }
+	  
+	  return <div>{rows}</div>// This doesn't work if you just return the {rows} part - why not?
+  }
+  
   nextTurn() {
 	  const squares = this.state.squares.slice();
-	  
-	  const size = 5;
 	  
 	  for (var square = 0; square < squares.length; square++) {
 		  var count = 0;
 		  
+		  // Work out if the square being counted is on the edge of the grid
 		  var rowStart = -1;		  
-		  if (square % size == 0) { 
+		  if (square % this.state.width == 0) { 
 			rowStart = 0;
 		  }
 		  
 		  var rowEnd = 1;		  
-		  if (square % size == (size - 1)) {
+		  if (square % this.state.width == (this.state.width - 1)) {
 			  rowEnd = 0;
 		  }
 		  
 		  var columnStart = -1;		  
-		  if (square < size) {
+		  if (square < this.state.width) {
 			  columnStart = 0;
 		  }
 		  
 		  var columnEnd = 1;		  
-		  if (square >= (size * (size - 1))) {
+		  if (square >= (this.state.width * (this.state.height - 1))) {
 			  columnEnd = 0;
 		  }
 		  
+		  // Count the number of neighbours
 		  for (var i = rowStart; i <= rowEnd; i++) {
-			  for (var j = columnStart; j <= columnEnd; j++) {
-				if (!(i == 0 && j == 0)) {
-					var check = square + (j * size) + i;
-					
-					if (check >= 0 && check < (size * size)) {
-						if (this.state.squares[check] == 'black') {
-							count++;
-						}
-					}
-				}
-			  }
+		   for (var j = columnStart; j <= columnEnd; j++) {
+		  if (!(i == 0 && j == 0)) {
+		  	var check = square + (j * this.state.width) + i;
+		  	
+		  	if (check >= 0 && check < (this.state.height * this.state.width)) {
+		  		if (this.state.squares[check] == 'black') {
+		  			count++;
+		  		}
+		  	}
 		  }
-		  
-		  console.log(square + " " + count);
-		  
+		   }
+		  }
+
+		  // Empty square is filled if exactly three filled neighbours
 		  if (this.state.squares[square] == 'white' && count == 3) {
 			  squares[square] = 'black';
 		  }
 		  
+		  // Filled square is emptied if less than 2 or more than 3 neighbours
 		  if (this.state.squares[square] == 'black') {
 			  if (count < 2 || count > 3) {
 				squares[square] = 'white';
@@ -93,47 +112,10 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: X';
-
     return (
       <div>
-        <div className="status">{status}</div>
 		<button onClick={() => this.nextTurn()}>Next turn</button>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-		  {this.renderSquare(3)}
-		  {this.renderSquare(4)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(5)}
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-		  {this.renderSquare(8)}
-		  {this.renderSquare(9)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(10)}
-          {this.renderSquare(11)}
-          {this.renderSquare(12)}
-		  {this.renderSquare(13)}
-		  {this.renderSquare(14)}
-        </div>
-		<div className="board-row">
-          {this.renderSquare(15)}
-          {this.renderSquare(16)}
-          {this.renderSquare(17)}
-		  {this.renderSquare(18)}
-		  {this.renderSquare(19)}
-        </div>
-		<div className="board-row">
-          {this.renderSquare(20)}
-          {this.renderSquare(21)}
-          {this.renderSquare(22)}
-		  {this.renderSquare(23)}
-		  {this.renderSquare(24)}
-        </div>
+			{this.drawGrid(this.state.height,this.state.width)}
       </div>
     );
   }
@@ -144,7 +126,7 @@ class Game extends React.Component {
     return (
       <div className="game">
         <div className="game-board">
-          <Board />
+          <Board height={25} width={40} />
         </div>
         <div className="game-info">
           <div>{/* status */}</div>
